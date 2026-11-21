@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+
+# Dữ liệu lớn (tái tạo bằng python -m src.data.run_eda)
+data/processed/clean_imdb.csv
+data/splits/train.csv
+data/splits/val.csv
+data/splits/test.csv
+data/raw/imdb_raw_sample.csv
+
+# Kết quả chạy (giữ metrics + plots nhẹ)
+# Bỏ file nặng trong plots nếu có (giữ png minh họa)
+results/runs/**/loss_*.png
+
+# Model checkpoints
+models/checkpoints/
+models/trained/
+*.pt
+*.bin
+
+# Hệ điều hành / IDE
+.DS_Store
+Thumbs.db
+.cursor/projects/

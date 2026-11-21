@@ -1,0 +1,12 @@
+dataset: stanfordnlp/imdb
+fallback_dataset: imdb
+text_col: text
+label_col: label
+seed: 42
+split_ratio: [0.8, 0.1, 0.1]
+max_length: 256
+raw_dir: data/raw
+processed_path: data/processed/clean_imdb.csv
+splits_dir: data/splits
+results_dir: results/runs/eda-baseline
+sample_size_for_eda_plot: 5000
