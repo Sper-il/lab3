@@ -1,0 +1,23 @@
+data:
+  test_path: "data/splits/test.csv"
+  text_col: "text"       # đổi nếu cột text/review của bạn tên khác
+  label_col: "label"     # đổi nếu cột nhãn tên khác (0/1)
+  batch_size: 32
+  num_workers: 0
+
+model:
+  model_name: "distilbert-base-uncased"
+  num_labels: 2
+  max_length: 256
+  device: "cpu"
+
+eval:
+  targets:
+    accuracy: 0.85
+    f1: 0.85
+  error_analysis_top_k: 5
+
+output:
+  plots_dir: "plots"
+  metrics_filename: "metrics.json"
+  errors_filename: "error_cases.json"
