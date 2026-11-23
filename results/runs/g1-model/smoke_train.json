@@ -1,0 +1,32 @@
+{
+  "module": "G1_smoke_train",
+  "backbone": "distilbert-base-uncased",
+  "n_train": 64,
+  "n_eval": 32,
+  "max_steps": 3,
+  "train_seconds": 14.1,
+  "train_loss": 0.6995,
+  "eval": {
+    "eval_loss": 0.6928,
+    "eval_accuracy": 0.5312,
+    "eval_f1": 0.2857,
+    "eval_precision": 0.5,
+    "eval_recall": 0.2,
+    "eval_runtime": 5.3053,
+    "eval_samples_per_second": 6.032,
+    "eval_steps_per_second": 1.508,
+    "epoch": 0.1875
+  },
+  "predictions_shape": [
+    32,
+    2
+  ],
+  "checks": {
+    "dataset có train/val": true,
+    "model build được": true,
+    "train chạy, loss hữu hạn": true,
+    "evaluate trả metric": true,
+    "predict shape khớp (B,2)": true
+  },
+  "status": "PASS"
+}

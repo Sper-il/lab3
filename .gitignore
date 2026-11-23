@@ -6,6 +6,11 @@ __pycache__/
 venv/
 
 # Dữ liệu lớn (tái tạo bằng python -m src.data.run_eda)
+data/data/processed/clean_imdb.csv
+data/data/splits/train.csv
+data/data/splits/val.csv
+data/data/splits/test.csv
+data/data/raw/imdb_raw_sample.csv
 data/processed/clean_imdb.csv
 data/splits/train.csv
 data/splits/val.csv
@@ -19,8 +24,10 @@ results/runs/**/loss_*.png
 # Model checkpoints
 models/checkpoints/
 models/trained/
+results/runs/**/checkpoint*/
 *.pt
 *.bin
+*.safetensors
 
 # Hệ điều hành / IDE
 .DS_Store

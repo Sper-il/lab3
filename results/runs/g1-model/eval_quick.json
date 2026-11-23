@@ -1,0 +1,33 @@
+{
+  "module": "G1_model_eval_quick",
+  "backbone": "distilbert-base-uncased",
+  "tokenizer": "distilbert-base-uncased",
+  "fine_tuned": false,
+  "split": "val",
+  "n_samples": 500,
+  "batch_size": 16,
+  "metrics": {
+    "accuracy": 0.428,
+    "f1": 0.4704,
+    "precision": 0.4504,
+    "recall": 0.4922,
+    "avg_loss": 0.6959
+  },
+  "confusion_matrix": [
+    [
+      87,
+      155
+    ],
+    [
+      131,
+      127
+    ]
+  ],
+  "inference_seconds": 67.38,
+  "ms_per_sample": 134.8,
+  "label_distribution": {
+    "1": 258,
+    "0": 242
+  },
+  "note": "Random baseline tren model chua fine-tune. Target >= 0.85 se dat sau G2 (Training)."
+}

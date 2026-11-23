@@ -1,0 +1,30 @@
+{
+  "module": "G1_model",
+  "backbone": "distilbert-base-uncased",
+  "tokenizer": "distilbert-base-uncased",
+  "num_labels": 2,
+  "max_length": 256,
+  "batch_size": 4,
+  "input_ids_shape": [
+    4,
+    256
+  ],
+  "attention_mask_shape": [
+    4,
+    256
+  ],
+  "logits_shape": [
+    4,
+    2
+  ],
+  "num_parameters": 66955010,
+  "num_trainable_parameters": 66955010,
+  "params_millions": 66.96,
+  "model_size_mb_float32": 255.4,
+  "loss_check": 0.7036,
+  "device": "cpu",
+  "torch_version": "2.12.0+cpu",
+  "python_version": "3.11.9",
+  "forward_seconds": 0.503,
+  "status": "PASS"
+}

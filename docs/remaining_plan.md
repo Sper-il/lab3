@@ -21,7 +21,15 @@
 
 ## 2. Chia gói việc (6 gói, làm tuần tự, mỗi gói 1 commit)
 
-### Gói G1 — Model: chốt backbone + `tokenize` + kiểm tra shape
+### Gói G1 — Model: chốt backbone + `tokenize` + kiểm tra shape — **✅ DONE 2026-11-23**
+> Hoàn thành. Báo cáo chi tiết: `docs/g1_model_progress.md`. Nhật ký: `docs/AUDIT_LOG.md`. Hướng dẫn chạy: `docs/RUN_GUIDE.md`.
+> Metrics: `results/runs/g1-model/metrics.json` + `results/runs/g1-model/eval_quick.json`.
+> Cài: `transformers==5.24.0`, `datasets==5.2.0`, `evaluate==0.4.6`, `accelerate==1.16.0`.
+> Deliverables đã có: `configs/model_config.yaml`, `src/models/{tokenizer_utils,architecture,loss,dataset_builder,check,eval_quick}.py`,
+> `src/utils/config.py`, `notebooks/02_tokenize_check.ipynb`, `tests/unit/test_models.py` (7 pass), `requirements.txt`.
+> Kết quả: `(4, 256)` → `(4, 2)` ✅ · 66,955,010 params (~67.0M) ✅ · ~255 MB float32 ✅.
+> Eval trên 500 mẫu val thật (chưa fine-tune): acc 0.4280 / F1 0.4704 / loss 0.6959 — đúng baseline random, pipeline chạy đúng.
+> Check lại: `python -m src.models.check` · `python -m src.models.eval_quick --n 500 --split val`
 - Mục tiêu: có `build_model()` và `tokenize` chạy được trên 1 batch thật, khớp Design `input (B,256)` → `logits (B,2)`.
 - Input: `data/splits/train.csv`; Output: `logits` shape `(B,2)`.
 - Files tạo/sửa:

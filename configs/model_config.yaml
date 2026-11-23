@@ -1,0 +1,41 @@
+# Cấu hình Model (Gói G1 — Model)
+# Single source of truth cho backbone / tokenizer / head / loss.
+# Người tiếp theo (G2 Training) chỉ cần đọc file này để dựng Trainer tương thích.
+
+model:
+  # Backbone pre-trained từ Hugging Face Hub.
+  # distilbert-base-uncased: nhẹ hơn bert-base-uncased ~40% (66M vs 110M params),
+  # chạy được trên CPU của phòng lab, vẫn giữ ~97% hiệu năng BERT trên IMDB.
+  model_name: distilbert-base-uncased
+  # Fallback nếu model_name không tải được từ Hub (đã có cache local).
+  fallback_model_name: bert-base-uncased
+  num_labels: 2            # 0 = negative, 1 = positive
+  problem_type: single_label_classification
+  # dtype: float32 (CPU an toàn, đúng yêu cầu trong Rủi ro của kế hoạch)
+  dtype: float32
+
+tokenizer:
+  max_length: 256          # khớp Design: input (B, 256)
+  padding: max_length      # cố định shape (B, 256) theo yêu cầu kiểm tra shape
+  truncation: True
+  lowercase: True          # distilbert-base-uncased là uncased
+
+loss:
+  name: cross_entropy       # torch.nn.CrossEntropyLoss
+
+paths:
+  splits_dir: data/data/splits   # vị trí splits thực tế trong repo hiện tại
+  train_file: train.csv
+  val_file: val.csv
+  test_file: test.csv
+
+# Nhãn -> hiển thị (khớp output của pipeline sentiment-analysis ở Ex1)
+label_names:
+  0: NEGATIVE
+  1: POSITIVE
+
+runtime:
+  seed: 42
+  device: cpu
+  # batch_size nhỏ khi check shape (Rủi ro: thiếu RAM khi load model)
+  check_batch_size: 4
