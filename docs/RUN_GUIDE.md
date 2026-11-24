@@ -1,7 +1,7 @@
 # HƯỚNG DẪN CHẠY — Dành cho thành viên tiếp theo
 
 > Đọc file này là đủ để **cài đặt, chạy thử, hiểu quy trình** mà không cần đào lại code.
-> Mục tiêu hiện tại: gói **G1 (Model)** đã xong. Gói tiếp theo: **G2 (Training)**.
+> Mục tiêu hiện tại: gói **G1 (Model)** và **G2 (Training)** đã xong. Gói tiếp theo: **G3 (Eval)**.
 
 ---
 
@@ -54,11 +54,11 @@ Kết quả mong đợi: `TẤT CẢ CHECK PASS — 66.96M params, logits (4, 2)
 ```
 [G0] Data: raw → clean → splits        ✅ XONG (39.662 / 4.958 / 4.958)
   ↓
-[G1] Model: tokenize → backbone → loss ✅ XONG  ← BẠN ĐANG Ở ĐÂY
+[G1] Model: tokenize → backbone → loss ✅ XONG
   ↓
-[G2] Training: Trainer + fine-tune      ⬜ TIẾP THEO
+[G2] Training: Trainer + fine-tune     ✅ XONG  ← VỪA HOÀN THÀNH
   ↓
-[G3] Eval: accuracy/F1 + confusion      ⬜
+[G3] Eval: accuracy/F1 + confusion     ⬜ TIẾP THEO (BẠN ĐANG Ở ĐÂY)
   ↓
 [G4] Visualize: report.html              ⬜
   ↓

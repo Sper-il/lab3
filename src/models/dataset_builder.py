@@ -12,6 +12,8 @@ Dùng:
     print(ds["train"].features)
 """
 
+from typing import Dict, Optional, Union
+
 import pandas as pd
 from datasets import Dataset, DatasetDict
 
@@ -39,6 +41,7 @@ def build_datasets(
     include_test: bool = True,
     tokenize: bool = True,
     format: str = "torch",
+    max_samples: Optional[Union[int, Dict[str, int]]] = None,
 ):
     """Dựng DatasetDict train/val/test từ `data/splits`, đã tokenize sẵn.
 
@@ -50,6 +53,8 @@ def build_datasets(
         format: "torch" (mặc định) -> dataset trả về `torch.Tensor` sẵn, dùng được
             cả với `Trainer` lẫn vòng lặp PyTorch thuần.
             "python" -> trả về list (như `Dataset.from_dict` mặc định).
+        max_samples: Giới hạn số mẫu từng split trước khi tokenize (tăng tốc debug).
+            Có thể là int (áp dụng cho mọi split) hoặc dict {"train": n, "val": m}.
 
     Returns:
         datasets.DatasetDict
@@ -66,6 +71,14 @@ def build_datasets(
     out = {}
     for split in wanted:
         df = load_split(paths[f"{split}_file"])
+        if max_samples is not None:
+            if isinstance(max_samples, dict):
+                limit = max_samples.get(split)
+            else:
+                limit = int(max_samples)
+            if limit and limit < len(df):
+                df = df.iloc[:limit].reset_index(drop=True)
+
         if tokenize:
             cols = tokenize_dataframe(
                 df, tok, max_length=max_len, padding=padding, truncation=truncation

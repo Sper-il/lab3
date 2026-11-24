@@ -1,0 +1,18 @@
+=== BẮT ĐẦU HUẤN LUYỆN G2 — RUN: 20261124_170106_benchmark_64_samples ===
+Thời gian: 2026-11-24T17:01:06.518054
+Backbone : distilbert-base-uncased
+
+[Epoch 1.0/1.0] Step 4 hoàn tất.
+  -> Eval: loss=0.6876 | accuracy=0.5312 | f1=0.0000
+  -> Eval: loss=0.6876 | accuracy=0.5312 | f1=0.0000
+
+=== KẾT QUẢ HUẤN LUYỆN ===
+{
+  "accuracy": 0.5312,
+  "f1": 0.0,
+  "precision": 0.0,
+  "recall": 0.0,
+  "loss": 0.6876
+}
+Best checkpoint: C:\Hocsau\lab3_repo\results\runs\20261124_170106_benchmark_64_samples\checkpoints\checkpoint-4
+Hoàn thành thành công.

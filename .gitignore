@@ -18,8 +18,7 @@ data/splits/test.csv
 data/raw/imdb_raw_sample.csv
 
 # Kết quả chạy (giữ metrics + plots nhẹ)
-# Bỏ file nặng trong plots nếu có (giữ png minh họa)
-results/runs/**/loss_*.png
+results/runs/**/checkpoints/
 
 # Model checkpoints
 models/checkpoints/

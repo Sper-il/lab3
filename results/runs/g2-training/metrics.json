@@ -1,0 +1,61 @@
+{
+  "run_id": "20261124_170106_benchmark_64_samples",
+  "timestamp": "20261124_170106",
+  "backbone": "distilbert-base-uncased",
+  "num_epochs": 1.0,
+  "batch_size": 16,
+  "learning_rate": 2e-05,
+  "n_train_samples": 64,
+  "n_val_samples": 32,
+  "train_runtime_sec": 155.59,
+  "train_samples_per_second": 0.41,
+  "train_loss": 0.6704,
+  "best_metric": {
+    "name": "f1",
+    "value": 0.0
+  },
+  "validation_metrics": {
+    "accuracy": 0.5312,
+    "f1": 0.0,
+    "precision": 0.0,
+    "recall": 0.0,
+    "loss": 0.6876
+  },
+  "best_checkpoint": "C:\\Hocsau\\lab3_repo\\results\\runs\\20261124_170106_benchmark_64_samples\\checkpoints\\checkpoint-4",
+  "status": "COMPLETED",
+  "log_history": [
+    {
+      "eval_loss": 0.687608003616333,
+      "eval_accuracy": 0.53125,
+      "eval_f1": 0.0,
+      "eval_precision": 0.0,
+      "eval_recall": 0.0,
+      "eval_runtime": 14.6756,
+      "eval_samples_per_second": 2.18,
+      "eval_steps_per_second": 0.068,
+      "epoch": 1.0,
+      "step": 4
+    },
+    {
+      "train_runtime": 154.1917,
+      "train_samples_per_second": 0.415,
+      "train_steps_per_second": 0.026,
+      "total_flos": 4238956756992.0,
+      "train_loss": 0.6704204082489014,
+      "epoch": 1.0,
+      "step": 4
+    },
+    {
+      "eval_loss": 0.687608003616333,
+      "eval_accuracy": 0.53125,
+      "eval_f1": 0.0,
+      "eval_precision": 0.0,
+      "eval_recall": 0.0,
+      "eval_runtime": 12.0556,
+      "eval_samples_per_second": 2.654,
+      "eval_steps_per_second": 0.083,
+      "epoch": 1.0,
+      "step": 4
+    }
+  ]
+}

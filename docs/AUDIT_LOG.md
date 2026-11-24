@@ -345,3 +345,51 @@ Thứ tự đọc đề nghị:
 3. `docs/remaining_plan.md` §G2 — yêu cầu gói tiếp theo
 4. `configs/model_config.yaml` — tham số sẽ dùng
 5. `src/models/*.py` — code thực thi
+
+
+---
+
+# AUDIT LOG — Gói G2 (Training)
+
+> Nhật ký làm việc chi tiết của Người 2 (module Training).
+> File báo cáo tổng hợp: `docs/g2_training_progress.md` · Hướng dẫn chạy: `docs/RUN_GUIDE.md`
+
+**Phạm vi:** `docs/remaining_plan.md` → Gói G2 (dòng 45–56)  
+**Trạng thái cuối:** ✅ **HOÀN TẤT** — chờ commit  
+**Ngày thực hiện:** 2026-11-24  
+
+---
+
+## 1. Timeline hoạt động G2
+
+| # | Thời điểm | Hành động | Kết quả |
+|---|-----------|-----------|---------|
+| 1 | 16:35 | Nhận bàn giao từ poll nhóm: được giao **G2 — Training** | Bắt đầu tiếp quản repository và kiểm tra môi trường |
+| 2 | 16:38 | Cài đặt `transformers 5.24.0`, `datasets 5.2.0`, `evaluate 0.4.6`, `accelerate 1.16.0` | ✅ Cài đặt thành công |
+| 3 | 16:45 | Tái tạo dữ liệu splits `data/splits/{train,val,test}.csv` bằng `python -m src.data.run_eda` | ✅ 39.662 train, 4.958 val, 4.958 test |
+| 4 | 16:47 | Kiểm tra nạp backbone và weights `distilbert-base-uncased` | ✅ Model check PASS (66.96M params) |
+| 5 | 16:50 | Cập nhật `src/utils/config.py` và `src/utils/__init__.py` với hàm `load_train_config()` | ✅ Resolve path tự động |
+| 6 | 16:51 | Tạo `configs/train_config.yaml` | ✅ Single source of truth cho huấn luyện |
+| 7 | 16:52 | Tạo `src/training/metrics.py` (tính metrics độc lập và callback Trainer bằng sklearn) | ✅ Hỗ trợ cả torch tensor và numpy |
+| 8 | 16:53 | Tạo `src/training/plot_utils.py` | ✅ Xuất `plots/loss_curve.png` và `plots/metrics_curve.png` |
+| 9 | 16:54 | Tạo `src/training/trainer.py` và `src/training/__main__.py` | ✅ Trainer với EarlyStopping, logging tracker, best checkpoint |
+| 10 | 16:55 | Tạo `tests/unit/test_training.py` (7 tests) | ✅ 7 passed |
+| 11 | 16:56 | 🐛 **BUG PHÁT HIỆN 1**: `TrainingArguments` trong Transformers 5.x không có `warmup_ratio` | Sửa sang `warmup_steps` |
+| 12 | 16:58 | 🐛 **BUG PHÁT HIỆN 2**: `build_datasets()` tokenize toàn bộ 39k dòng dù gọi `--max-train-samples` nhỏ | Bổ sung tham số `max_samples` vào `dataset_builder.py` để cắt mẫu trước khi tokenize |
+| 13 | 17:00 | Chạy toàn bộ test suite (17/17 tests) | ✅ 17 passed trong 21s |
+| 14 | 17:02 | Chạy kiểm chứng huấn luyện nhanh (`--epochs 1 --max-train-samples 16`) | ✅ Lưu `best_model`, `plots/`, `metrics.json` |
+| 15 | 17:04 | Chạy đo benchmark tốc độ CPU thực tế (`--estimate-time --benchmark-samples 64`) | ✅ Đo được 0.41 samples/s (~80 giờ full 3 epoch trên CPU) |
+| 16 | 17:05 | Tạo thư mục tiêu chuẩn bàn giao `results/runs/g2-training/` | ✅ Sẵn sàng cho G3 Eval |
+| 17 | 17:06 | Cập nhật tài liệu: `docs/g2_training_progress.md`, `docs/progress_status.md`, `docs/RUN_GUIDE.md` | ✅ Hoàn thành |
+
+---
+
+## 2. Checklist bàn giao G2 → G3 (Eval)
+
+- [x] `configs/train_config.yaml` đầy đủ tham số huấn luyện chuẩn
+- [x] `src/training/trainer.py` và CLI `python -m src.training` hoạt động end-to-end
+- [x] Checkpoint best model lưu kèm tokenizer trong `results/runs/g2-training/best_model/`
+- [x] Tập `test.csv` được khóa an toàn, không bị leakage trong quá trình train
+- [x] Toàn bộ unit tests pass: 17/17 tests
+- [x] Có biểu đồ `loss_curve.png` và `metrics_curve.png`
+- [x] Số liệu huấn luyện lưu đầy đủ trong `metrics.json` và `logs.txt`

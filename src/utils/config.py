@@ -40,3 +40,13 @@ def load_model_config(path: str = "configs/model_config.yaml") -> Dict[str, Any]
         "test_file": str(splits_dir / paths.get("test_file", "test.csv")),
     }
     return cfg
+
+
+def load_train_config(path: str = "configs/train_config.yaml") -> Dict[str, Any]:
+    """Đọc `configs/train_config.yaml` và resolve các đường dẫn liên quan."""
+    cfg = load_config(path)
+    if "model_config_path" in cfg:
+        cfg["model_config_path"] = str(repo_path(cfg["model_config_path"]))
+    if "training" in cfg and "output_dir" in cfg["training"]:
+        cfg["training"]["output_dir"] = str(repo_path(cfg["training"]["output_dir"]))
+    return cfg
