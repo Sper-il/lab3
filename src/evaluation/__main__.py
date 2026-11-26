@@ -1,5 +1,6 @@
 import argparse
 import json
+import time
 from pathlib import Path
 from typing import Any, Dict, Tuple
 
@@ -10,12 +11,14 @@ import torch
 import yaml
 from sklearn.metrics import ConfusionMatrixDisplay
 from torch.utils.data import DataLoader, Dataset
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
-from src.evaluation.metrics import (
+from src.evaluation.metric import (
     LatencyTimer,
     compute_classification_metrics,
     extract_error_cases,
 )
+from src.evaluation.visualize_html import build_report
 from src.models.architecture import build_model
 from src.models.tokenizer_utils import build_tokenizer, tokenize_batch
 
@@ -37,16 +40,58 @@ def load_yaml(path: str) -> Dict[str, Any]:
         return yaml.safe_load(f)
 
 
-def load_checkpoint_weights(model: torch.nn.Module, checkpoint_path: Path, device: torch.device) -> None:
-    state = torch.load(checkpoint_path, map_location=device)
+def extract_correct_cases(
+    texts: list[str],
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    probs: np.ndarray,
+    top_k: int = 5,
+) -> list[Dict[str, Any]]:
+    """Lấy top_k mẫu dự đoán đúng có độ tự tin cao nhất để hiển thị trên báo cáo G4."""
+    corrects: list[Dict[str, Any]] = []
+    for idx, (true_lbl, pred_lbl) in enumerate(zip(y_true, y_pred)):
+        if int(true_lbl) == int(pred_lbl):
+            conf = float(np.max(probs[idx]))
+            corrects.append(
+                {
+                    "index": int(idx),
+                    "text": texts[idx],
+                    "true_label": int(true_lbl),
+                    "pred_label": int(pred_lbl),
+                    "confidence": round(conf, 4),
+                    "prob_class_0": round(float(probs[idx][0]), 4),
+                    "prob_class_1": round(float(probs[idx][1]), 4),
+                }
+            )
+    corrects.sort(key=lambda item: item["confidence"], reverse=True)
+    return corrects[:top_k]
+
+
+def load_model_and_tokenizer(cfg: Dict[str, Any], ckpt_path: Path, device: torch.device):
+    """Hỗ trợ cả thư mục Hugging Face (G2 save_pretrained) lẫn file .pt/.bin."""
+    model_cfg = cfg.get("model", {})
+    if ckpt_path.is_dir():
+        has_weights = any(
+            (ckpt_path / fname).exists()
+            for fname in ("model.safetensors", "pytorch_model.bin")
+        )
+        if not has_weights:
+            raise FileNotFoundError(
+                f"Thư mục '{ckpt_path}' mới chỉ có config/tokenizer, CHƯA CÓ file trọng số "
+                "(model.safetensors hoặc pytorch_model.bin). Hãy lấy file trọng số từ G2 chép vào đây!"
+            )
+        tokenizer = AutoTokenizer.from_pretrained(str(ckpt_path))
+        model = AutoModelForSequenceClassification.from_pretrained(str(ckpt_path)).to(device)
+        return model, tokenizer
+
+    tokenizer, _ = build_tokenizer(cfg)
+    model, _ = build_model(cfg)
+    state = torch.load(ckpt_path, map_location=device)
     if isinstance(state, dict):
-        if "model_state_dict" in state:
-            model.load_state_dict(state["model_state_dict"])
-            return
-        if "state_dict" in state:
-            model.load_state_dict(state["state_dict"])
-            return
+        state = state.get("model_state_dict", state.get("state_dict", state))
     model.load_state_dict(state)
+    model.to(device)
+    return model, tokenizer
 
 
 def plot_confusion_matrix(cm: list[list[int]], save_path: Path) -> None:
@@ -74,8 +119,13 @@ def run_evaluation(config_path: str, checkpoint_path_arg: str | None) -> Path:
     if not ckpt_path.exists():
         raise FileNotFoundError(f"Không tìm thấy checkpoint: {ckpt_path}")
 
-    # Nếu checkpoint nằm trong results/runs/<ts>/..., lưu output ngay tại run_dir đó
-    run_dir = ckpt_path.parent.parent if ckpt_path.parent.name == "checkpoints" else ckpt_path.parent
+    # Nếu checkpoint là results/runs/<ts>/best_model hoặc checkpoints/..., lưu output ngay tại run_dir đó
+    if ckpt_path.parent.name in {"best_model", "checkpoints"}:
+        run_dir = ckpt_path.parent.parent
+    elif ckpt_path.is_dir() and ckpt_path.name == "best_model":
+        run_dir = ckpt_path.parent
+    else:
+        run_dir = ckpt_path.parent
     run_dir.mkdir(parents=True, exist_ok=True)
 
     data_cfg = cfg["data"]
@@ -83,10 +133,8 @@ def run_evaluation(config_path: str, checkpoint_path_arg: str | None) -> Path:
     texts = df[data_cfg["text_col"]].fillna("").astype(str).tolist()
     labels = df[data_cfg["label_col"]].astype(int).to_numpy()
 
-    model_cfg = cfg["model"]
-    tokenizer = build_tokenizer(model_cfg["model_name"])
-    model = build_model(model_cfg).to(device)
-    load_checkpoint_weights(model, ckpt_path, device)
+    model_cfg = cfg.get("model", {})
+    model, tokenizer = load_model_and_tokenizer(cfg, ckpt_path, device)
     model.eval()
 
     dataset = EvalTextDataset(texts, labels)
@@ -95,8 +143,8 @@ def run_evaluation(config_path: str, checkpoint_path_arg: str | None) -> Path:
         batch_texts = [item[0] for item in batch]
         batch_labels = torch.tensor([item[1] for item in batch], dtype=torch.long)
         encoded = tokenize_batch(
-            tokenizer,
             batch_texts,
+            tokenizer,
             max_length=int(model_cfg.get("max_length", 256)),
         )
         return encoded, batch_labels
@@ -138,6 +186,7 @@ def run_evaluation(config_path: str, checkpoint_path_arg: str | None) -> Path:
 
     top_k = int(cfg.get("eval", {}).get("error_analysis_top_k", 5))
     error_cases = extract_error_cases(texts, labels, y_pred, y_probs, top_k=top_k)
+    correct_cases = extract_correct_cases(texts, labels, y_pred, y_probs, top_k=top_k)
 
     cm_rel_path = Path(cfg.get("output", {}).get("plots_dir", "plots")) / "confusion_matrix.png"
     plot_confusion_matrix(metrics_data["confusion_matrix"], run_dir / cm_rel_path)
@@ -165,6 +214,9 @@ def run_evaluation(config_path: str, checkpoint_path_arg: str | None) -> Path:
     with open(run_dir / errors_filename, "w", encoding="utf-8") as f:
         json.dump(error_cases, f, indent=2, ensure_ascii=False)
 
+    with open(run_dir / "correct_cases.json", "w", encoding="utf-8") as f:
+        json.dump(correct_cases, f, indent=2, ensure_ascii=False)
+
     print("=== G3 EVALUATION SUMMARY (TEST SET) ===")
     for item in metrics_data["summary"]:
         print(
@@ -174,13 +226,16 @@ def run_evaluation(config_path: str, checkpoint_path_arg: str | None) -> Path:
     print(f"- Latency: {latency_data['avg_latency_ms_per_sample']} ms/sample "
           f"({latency_data['throughput_samples_per_sec']} samples/s)")
     print(f"- Saved metrics to: {metrics_path}")
+
+    # Tự động xuất báo cáo HTML G4 ngay sau khi G3 xong
+    build_report(run_dir)
     return metrics_path
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Evaluate fine-tuned model on test split (G3)")
     parser.add_argument("--config", required=True, help="Path to eval_config.yaml")
-    parser.add_argument("--checkpoint", default=None, help="Path to trained checkpoint (.pt/.bin)")
+    parser.add_argument("--checkpoint", default=None, help="Path to trained checkpoint")
     args = parser.parse_args()
     run_evaluation(args.config, args.checkpoint)
 
